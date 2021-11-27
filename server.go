@@ -1,8 +1,6 @@
 package main
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"log"
@@ -73,49 +71,49 @@ var Prizes = []Prize{
 	{
 		Id:     0,
 		Name:   "泰國身體乳",
-		Chance: 100,
+		Chance: 15,
 		Image:  "https://img.alicdn.com/imgextra/i4/917298378/O1CN01dLJu6z2BlAxjK7iEB_!!917298378.png",
 		Win:    true,
 	}, {
 		Id:     1,
 		Name:   "1000元折扣券",
-		Chance: 100,
+		Chance: 0,
 		Image:  "https://img.alicdn.com/imgextra/i4/917298378/O1CN01Lf5sMT2BlAxjK76oR_!!917298378.png",
 		Win:    true,
 	}, {
 		Id:     2,
 		Name:   "植題沐浴油",
-		Chance: 100,
+		Chance: 15,
 		Image:  "https://img.alicdn.com/imgextra/i4/917298378/O1CN01fBhkcG2BlAxYPbeOa_!!917298378.png",
 		Win:    true,
 	}, {
 		Id:     3,
 		Name:   "抗皺除斑套裝",
-		Chance: 100,
+		Chance: 0,
 		Image:  "https://img.alicdn.com/imgextra/i4/917298378/O1CN01D3CXix2BlAxgrV2jH_!!917298378.png",
 		Win:    true,
 	}, {
 		Id:     4,
 		Name:   "免單",
-		Chance: 100,
+		Chance: 0,
 		Image:  "https://img.alicdn.com/imgextra/i3/917298378/O1CN01nqMqdo2BlAxkNwLRW_!!917298378.png",
 		Win:    true,
 	}, {
 		Id:     5,
 		Name:   "神秘大禮包",
-		Chance: 100,
+		Chance: 0,
 		Image:  "https://img.alicdn.com/imgextra/i3/917298378/O1CN01a1e5Kc2BlAxabAHJB_!!917298378.png",
 		Win:    true,
 	}, {
 		Id:     6,
-		Name:   "奧迪口紅",
-		Chance: 100,
+		Name:   "迪奧口紅",
+		Chance: 0,
 		Image:  "https://img.alicdn.com/imgextra/i2/917298378/O1CN01gdpx1Z2BlAxl2xnkY_!!917298378.png",
 		Win:    true,
 	}, {
 		Id:     7,
 		Name:   "謝謝參與",
-		Chance: 100,
+		Chance: 70,
 		Image:  "https://img.alicdn.com/imgextra/i1/917298378/O1CN01thznsy2BlAxchoaCM_!!917298378.png",
 		Win:    false,
 	},
@@ -472,20 +470,22 @@ func generateWinCode(lineid string, prizeid int, w bool) (string, error) {
 		return "", nil
 	}
 	data := fmt.Sprintf("%s$$%d", lineid, prizeid)
-	md5str := Md5Encrypt(data)
-	err := rdb.Set(md5str, data, 0).Err()
+	str := RandString(8)
+	err := rdb.Set(str, data, 0).Err()
 	if err != nil {
 		return "", errors.New("redis server set ip error")
 	}
-	return md5str, nil
+	return str, nil
 }
 
-func Md5Encrypt(data string) string {
-	md5Ctx := md5.New()                            //md5 init
-	md5Ctx.Write([]byte(data))                     //md5 updata
-	cipherStr := md5Ctx.Sum(nil)                   //md5 final
-	encryptedData := hex.EncodeToString(cipherStr) //hex_digest
-	return encryptedData
+func RandString(len int) string {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	bytes := make([]byte, len)
+	for i := 0; i < len; i++ {
+		b := r.Intn(26) + 65
+		bytes[i] = byte(b)
+	}
+	return string(bytes)
 }
 
 //颁发token
@@ -527,11 +527,12 @@ func ParseToken(tokenString string) (*jwt.Token, *Claims, error) {
 	return token, Claims, err
 }
 
-//获取ip
+//获取ip，已關閉ip驗證
 func GetRequestIP(c *gin.Context) string {
-	reqIP := c.ClientIP()
-	if reqIP == "::1" {
-		reqIP = "127.0.0.1"
-	}
-	return reqIP
+	// reqIP := c.ClientIP()
+	// if reqIP == "::1" {
+	// 	reqIP = "127.0.0.1"
+	// }
+	// return reqIP
+	return "127.0.0.1"
 }
