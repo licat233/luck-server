@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"net/http"
 	"sort"
 	"strconv"
 	"strings"
@@ -15,6 +14,7 @@ import (
 	// 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
+	"github.com/licat233/goutil/readfile"
 )
 
 var LineMaxcount = 1
@@ -60,63 +60,21 @@ type Claims struct {
 }
 
 type Prize struct {
-	Id     int    // 对应的前端Index
-	Name   string // 礼品名称
-	Image  string // 礼品图片
-	Chance int32  // 对应的几率 值越大 获取到的几率越小
-	Win    bool   //中獎了
+	Id     int    `yaml:"Id"`     // 对应的前端Index
+	Name   string `yaml:"Name"`   // 礼品名称
+	Image  string `yaml:"Image"`  // 礼品图片
+	Chance int32  `yaml:"Chance"` // 对应的几率 值越大 获取到的几率越小
+	Win    bool   `yaml:"Win"`    //中獎了
 }
 
-var Prizes = []Prize{
-	{
-		Id:     0,
-		Name:   "泰國身體乳",
-		Chance: 15,
-		Image:  "https://img.alicdn.com/imgextra/i4/917298378/O1CN01dLJu6z2BlAxjK7iEB_!!917298378.png",
-		Win:    true,
-	}, {
-		Id:     1,
-		Name:   "1000元折扣券",
-		Chance: 0,
-		Image:  "https://img.alicdn.com/imgextra/i4/917298378/O1CN01Lf5sMT2BlAxjK76oR_!!917298378.png",
-		Win:    true,
-	}, {
-		Id:     2,
-		Name:   "植題沐浴油",
-		Chance: 15,
-		Image:  "https://img.alicdn.com/imgextra/i4/917298378/O1CN01fBhkcG2BlAxYPbeOa_!!917298378.png",
-		Win:    true,
-	}, {
-		Id:     3,
-		Name:   "抗皺除斑套裝",
-		Chance: 0,
-		Image:  "https://img.alicdn.com/imgextra/i4/917298378/O1CN01D3CXix2BlAxgrV2jH_!!917298378.png",
-		Win:    true,
-	}, {
-		Id:     4,
-		Name:   "免單",
-		Chance: 0,
-		Image:  "https://img.alicdn.com/imgextra/i3/917298378/O1CN01nqMqdo2BlAxkNwLRW_!!917298378.png",
-		Win:    true,
-	}, {
-		Id:     5,
-		Name:   "神秘大禮包",
-		Chance: 0,
-		Image:  "https://img.alicdn.com/imgextra/i3/917298378/O1CN01a1e5Kc2BlAxabAHJB_!!917298378.png",
-		Win:    true,
-	}, {
-		Id:     6,
-		Name:   "迪奧口紅",
-		Chance: 0,
-		Image:  "https://img.alicdn.com/imgextra/i2/917298378/O1CN01gdpx1Z2BlAxl2xnkY_!!917298378.png",
-		Win:    true,
-	}, {
-		Id:     7,
-		Name:   "謝謝參與",
-		Chance: 70,
-		Image:  "https://img.alicdn.com/imgextra/i1/917298378/O1CN01thznsy2BlAxchoaCM_!!917298378.png",
-		Win:    false,
-	},
+type Config struct {
+	Port   int     `yaml:"Port"`
+	Prizes []Prize `yaml:"Prizes"`
+}
+
+var cf = Config{
+	Port:   65456,
+	Prizes: []Prize{},
 }
 
 // 声明一个全局的rdb变量
@@ -137,22 +95,21 @@ func initClient() (err error) {
 	return nil
 }
 
+//initprizes 初始配置数据
+func initprizes() {
+	readfile.YamlConfig("./config.yaml", &cf, func(err error) {
+	})
+}
+
 func main() {
+	initprizes()
 	if initClient() != nil {
 		log.Fatalln("redis conn failed")
 	}
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 
-	// 	r.Use(cors.New(cors.Config{
-	// 		AllowOrigins: []string{"*"},
-	// 		AllowMethods: []string{"*"},
-	// 		AllowHeaders: []string{"*"},
-	// 	}))
-
-	//静态文件服务
-	r.StaticFS("/luck/static", http.Dir("./client/static"))
-	// 	r.Static("/luck/static", "./client/static")
+	r.Static("/luck/static", "./client/static")
 	r.StaticFile("/luck/", "./client/index.html")
 
 	r.POST("/luck/verify", verify)
@@ -160,7 +117,7 @@ func main() {
 	r.POST("/luck/prizes", getPrizes)
 	r.POST("/luck/search", searchWincode)
 
-	r.Run(":65456")
+	r.Run(fmt.Sprintf(":%d", cf.Port))
 }
 
 func searchWincode(c *gin.Context) {
@@ -201,7 +158,7 @@ func searchWincode(c *gin.Context) {
 		Prizeimage: "",
 		LineId:     lineid,
 	}
-	for _, v := range Prizes {
+	for _, v := range cf.Prizes {
 		if v.Id == prizeid {
 			result.Prizename = v.Name
 			result.Prizeimage = v.Image
@@ -213,23 +170,22 @@ func searchWincode(c *gin.Context) {
 	}
 	resp.Message = "not found prize"
 	c.JSON(500, resp)
-	return
 }
 
 func getPrizes(c *gin.Context) {
 	c.JSON(200, Response{
 		Success: true,
 		Message: "请求成功",
-		Data:    Prizes,
+		Data:    cf.Prizes,
 	})
 }
 
 func luckPrize() Prize {
-	sort.Slice(Prizes[:], func(i, j int) bool {
-		return Prizes[i].Chance < Prizes[j].Chance
+	sort.Slice(cf.Prizes[:], func(i, j int) bool {
+		return cf.Prizes[i].Chance < cf.Prizes[j].Chance
 	})
 	var allprob int32
-	for _, v := range Prizes {
+	for _, v := range cf.Prizes {
 		allprob += v.Chance
 	}
 	result := Prize{
@@ -240,7 +196,7 @@ func luckPrize() Prize {
 	}
 	rand.Seed(time.Now().UnixNano())
 	random := rand.Int31n(allprob)
-	for _, v := range Prizes {
+	for _, v := range cf.Prizes {
 		if random <= v.Chance {
 			return v
 		}
@@ -352,7 +308,6 @@ func verify(c *gin.Context) {
 	resp.Message = "祝你好运"
 	resp.Data = data
 	c.JSON(200, resp)
-	return
 }
 
 func goodluck(c *gin.Context) {
@@ -466,7 +421,7 @@ func goodluck(c *gin.Context) {
 }
 
 func generateWinCode(lineid string, prizeid int, w bool) (string, error) {
-	if w == false {
+	if !w {
 		return "", nil
 	}
 	data := fmt.Sprintf("%s$$%d", lineid, prizeid)
