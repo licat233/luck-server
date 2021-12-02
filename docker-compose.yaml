@@ -1,0 +1,13 @@
+# yaml 配置
+version: "3.7"
+services:
+  luckserver:
+    build:
+      context: .
+    ports:
+      - "65456:80"
+    command:
+      - /usr/bin/sh
+      - -c
+      - |
+        supervisord -c /etc/supervisord.conf

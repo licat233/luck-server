@@ -5,4 +5,6 @@ WORKDIR /app
 COPY . .
 COPY supervisord.conf /etc/supervisord.conf
 RUN go mod tidy && CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -a -o goluck .
-CMD ["supervisord"]
+# CMD ["supervisord","/etc/supervisord.conf"]
+USER root
+EXPOSE 80
