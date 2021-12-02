@@ -1,10 +1,9 @@
 FROM golang:1.17.3-alpine3.15
-RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-RUN apk add redis;apk add supervisor;go env -w GO111MODULE=on;go env -w GOPROXY=https://goproxy.cn,direct
-WORKDIR /app
+WORKDIR /app/luckserver
 COPY . .
 COPY supervisord.conf /etc/supervisord.conf
-RUN go mod tidy && CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -a -o goluck .
-# CMD ["supervisord","/etc/supervisord.conf"]
-USER root
 EXPOSE 80
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+RUN apk add redis;apk add supervisor;go env -w GO111MODULE=on;go env -w GOPROXY=https://goproxy.cn,direct
+RUN go mod tidy && go build -o luckserver
+ENTRYPOINT ["supervisord","-c","/etc/supervisord.conf"]
