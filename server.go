@@ -79,9 +79,14 @@ var cf = Config{
 
 // 声明一个全局的rdb变量
 var rdb *redis.Client
+var rdbState bool
+var rdbConnCount int
 
-// 初始化连接
-func initClient() (err error) {
+// initRedis 初始化Redis连接
+func initRedis() (err error) {
+	if rdbState {
+		return nil
+	}
 	rdb = redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
 		Password: "", // no password set
@@ -89,21 +94,28 @@ func initClient() (err error) {
 	})
 
 	_, err = rdb.Ping().Result()
+	rdbConnCount++
 	if err != nil {
-		return err
+		fmt.Printf("Redis conn failed %d times\n", rdbConnCount)
+		if rdbConnCount >= 3 {
+			return err
+		}
+		<-time.After(time.Second * 3)
+		return initRedis()
 	}
+	rdbState = true
 	return nil
 }
 
-//initprizes 初始配置数据
-func initprizes() {
+//initPrizes 初始配置数据
+func initPrizes() {
 	readfile.YamlConfig("./config.yaml", &cf, func(err error) {
 	})
 }
 
 func main() {
-	initprizes()
-	if initClient() != nil {
+	initPrizes()
+	if initRedis() != nil {
 		log.Fatalln("redis conn failed")
 	}
 	gin.SetMode(gin.ReleaseMode)
@@ -112,12 +124,19 @@ func main() {
 	r.Static("/luck/static", "./client/static")
 	r.StaticFile("/luck/", "./client/index.html")
 
+	r.GET("/", Index)
 	r.POST("/luck/verify", verify)
 	r.POST("/luck/goodluck", goodluck)
 	r.POST("/luck/prizes", getPrizes)
 	r.POST("/luck/search", searchWincode)
 
 	r.Run(fmt.Sprintf(":%d", cf.Port))
+}
+
+func Index(c *gin.Context) {
+	c.JSON(200, gin.H{
+		"mes": "hello",
+	})
 }
 
 func searchWincode(c *gin.Context) {
