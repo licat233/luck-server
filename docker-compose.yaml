@@ -1,13 +1,13 @@
 # yaml 配置
 version: "3.7"
 services:
-  luckserver:
+  web:
     build:
       context: .
+      dockerfile: Dockerfile
+      labels:
+        - "by docker-compose build"
+      target: prod
     ports:
-      - "65456:80"
-    command:
-      - /usr/bin/sh
-      - -c
-      - |
-        supervisord -c /etc/supervisord.conf
+      - "81:80"
+    command: supervisord -c /etc/supervisord.conf

@@ -7,4 +7,4 @@
 
 ## docker安装教程：
 1. docker build -t luckserver:latest .
-2. docker run -d -p 81:12345 --name luckserver luckserver:latest
+2. docker run -d -p 81:80 --name luckserver luckserver:latest
