@@ -5,9 +5,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      labels:
-        - "by docker-compose build"
-      target: prod
     ports:
       - "81:80"
     command: supervisord -c /etc/supervisord.conf
