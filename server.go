@@ -118,7 +118,7 @@ func main() {
 	if initRedis() != nil {
 		log.Fatalln("redis conn failed")
 	}
-	// gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 
 	r.Static("/luck/static", "./client/static")
