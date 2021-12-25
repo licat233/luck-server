@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"net/http"
 	"sort"
 	"strconv"
 	"strings"
@@ -113,6 +114,31 @@ func initPrizes() {
 	})
 }
 
+func test() {
+	pm := make(map[string]int)
+	for i := 0; i < 1000000; i++ {
+		fmt.Printf("第%d次\n", i)
+		price := luckPrize()
+		pm[price.Name]++
+	}
+	fmt.Println(pm)
+}
+
+func Cors() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		method := context.Request.Method
+		context.Header("Access-Control-Allow-Origin", "*")
+		context.Header("Access-Control-Allow-Headers", "Content-Type,AccessToken,X-CSRF-Token, Authorization, Token")
+		context.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+		context.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type")
+		context.Header("Access-Control-Allow-Credentials", "true")
+		if method == "OPTIONS" {
+			context.AbortWithStatus(http.StatusNoContent)
+		}
+		context.Next()
+	}
+}
+
 func main() {
 	initPrizes()
 	if initRedis() != nil {
@@ -120,7 +146,7 @@ func main() {
 	}
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
-
+	r.Use(Cors())
 	r.Static("/luck/static", "./client/static")
 	r.StaticFile("/luck/", "./client/index.html")
 
@@ -129,7 +155,6 @@ func main() {
 	r.POST("/luck/goodluck", goodluck)
 	r.POST("/luck/prizes", getPrizes)
 	r.POST("/luck/search", searchWincode)
-
 	r.Run(fmt.Sprintf(":%d", cf.Port))
 }
 
