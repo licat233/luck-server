@@ -3,39 +3,9 @@ Prizes:
     -
         Id: 0
         Name: 泰國身體乳
-        Chance: 15
+        Chance: 0
         Image: https://img.alicdn.com/imgextra/i4/917298378/O1CN01dLJu6z2BlAxjK7iEB_!!917298378.png
         Win: true
-    - 
-        Id: 1 
-        Name: 1000元折扣券
-        Chance: 0
-        Image:  https://img.alicdn.com/imgextra/i4/917298378/O1CN01Lf5sMT2BlAxjK76oR_!!917298378.png
-        Win:    true
-    -
-        Id: 2
-        Name: 植題沐浴油
-        Chance: 15
-        Image:  https://img.alicdn.com/imgextra/i4/917298378/O1CN01fBhkcG2BlAxYPbeOa_!!917298378.png
-        Win:    true
-    -
-        Id: 3
-        Name: 抗皺除斑套裝
-        Chance: 0
-        Image:  https://img.alicdn.com/imgextra/i4/917298378/O1CN01D3CXix2BlAxgrV2jH_!!917298378.png
-        Win:    true
-    -
-        Id: 4
-        Name: 免單
-        Chance: 0
-        Image:  https://img.alicdn.com/imgextra/i3/917298378/O1CN01nqMqdo2BlAxkNwLRW_!!917298378.png
-        Win:    true
-    -
-        Id: 5
-        Name: 神秘大禮包
-        Chance: 0
-        Image:  https://img.alicdn.com/imgextra/i3/917298378/O1CN01a1e5Kc2BlAxabAHJB_!!917298378.png
-        Win:    true
     -
         Id: 6
         Name: 迪奧口紅
@@ -45,6 +15,6 @@ Prizes:
     -
         Id: 7
         Name: 謝謝參與
-        Chance: 70
+        Chance: 0
         Image:  https://img.alicdn.com/imgextra/i1/917298378/O1CN01thznsy2BlAxchoaCM_!!917298378.png
         Win:    false

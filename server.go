@@ -118,7 +118,7 @@ func main() {
 	if initRedis() != nil {
 		log.Fatalln("redis conn failed")
 	}
-	gin.SetMode(gin.ReleaseMode)
+	// gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 
 	r.Static("/luck/static", "./client/static")
@@ -204,8 +204,12 @@ func luckPrize() Prize {
 		return cf.Prizes[i].Chance < cf.Prizes[j].Chance
 	})
 	var allprob int32
+	var defaultPrice Prize
 	for _, v := range cf.Prizes {
 		allprob += v.Chance
+		if !v.Win {
+			defaultPrice = v
+		}
 	}
 	result := Prize{
 		Id:     1000,
@@ -214,9 +218,12 @@ func luckPrize() Prize {
 		Win:    false,
 	}
 	rand.Seed(time.Now().UnixNano())
+	if allprob == 0 {
+		return defaultPrice
+	}
 	random := rand.Int31n(allprob)
 	for _, v := range cf.Prizes {
-		if random <= v.Chance {
+		if random < v.Chance {
 			return v
 		}
 		random -= v.Chance
