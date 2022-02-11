@@ -59,10 +59,10 @@ type Claims struct {
 }
 
 type Prize struct {
-	Id     int    `yaml:"Id"`     // 对应的前端Index
+	Id     int    `yaml:"Id"`     // 对应的前端产品列表的 index
 	Name   string `yaml:"Name"`   // 礼品名称
 	Image  string `yaml:"Image"`  // 礼品图片
-	Chance int32  `yaml:"Chance"` // 对应的几率 值越大 获取到的几率越小
+	Chance int32  `yaml:"Chance"` // 运气值
 	Win    bool   `yaml:"Win"`    //中獎了
 }
 
